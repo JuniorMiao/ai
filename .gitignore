@@ -1,0 +1,42 @@
+# --- OS ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Editor / IDE (local) ---
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# --- Cursor: secrets & machine-local (keep .cursor/rules/ and .cursor/skills/ tracked for Spec Kit) ---
+.cursor/mcp.json
+.cursor/cli-config.json
+.cursor/debug.log
+.cursor/*.log
+
+# --- Misc ---
+*.tmp
+*.temp
+.cache/
