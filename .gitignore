@@ -36,6 +36,9 @@ build/
 .cursor/debug.log
 .cursor/*.log
 
+# --- db_query local SQLite (connection URLs; keep out of Git) ---
+w2/db_query/db_query.db
+
 # --- Misc ---
 *.tmp
 *.temp
