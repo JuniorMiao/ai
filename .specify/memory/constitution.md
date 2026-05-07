@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-- Version change: (template) → 1.0.0
-- Modified principles: 占位符 → 五条核心原则（初版成文）
-- Added sections: 安全、隐私与依赖；协作与工作流
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: 无（Core Principles 五条保持不变）
+- Added sections: db_query 子项目（w2/db_query）技术约束
 - Removed sections: 无
-- Templates: plan-template.md（Constitution Check）✅ 已更新 | spec-template.md ✅ 无需结构性修改 | tasks-template.md ✅ 无需修改
+- Templates: plan-template.md（Constitution Check 增补 db_query 闸门）✅ 已更新 | spec-template.md ✅ 无需结构性修改 | tasks-template.md ✅ 无需修改
 - Follow-up: 无
 -->
 
@@ -44,6 +44,20 @@ Sync Impact Report
 
 **理由**：可读性是长期成本的主要杠杆；AI 输出不等于最终审查通过。
 
+## db_query 子项目（`w2/db_query`）技术约束
+
+以下规则 **仅当变更落在 `w2/db_query`（数据库查询工具）范围内时** MUST 遵守；与上文 Core Principles 冲突时，仍以 Core Principles 为先（例如密钥不得入库）。
+
+- **语言与风格**：后端 MUST 以符合 **Ergonomic Python** 习惯的代码编写；前端 MUST 使用 **TypeScript**。
+
+- **类型**：后端与前端 MUST 保持 **严格类型标注**（Python 类型注解、TypeScript 显式类型）；禁止以“动态绕过”代替应有类型。
+
+- **数据模型**：后端领域与 API 载荷 MUST 使用 **Pydantic** 定义模型与校验。
+
+- **JSON 命名**：后端序列化对外 JSON MUST 使用 **camelCase** 属性名（含 FastAPI 响应模型配置或等效约定），与前端一致。
+
+- **访问控制**：本工具 **不提供身份认证**；任何能访问部署实例的用户均可使用。规格与实现 MUST 不引入登录/会话作为必备路径；若将来变更，须先修订本宪章并升级版本。
+
 ## 安全、隐私与依赖
 
 - **数据**：默认不收集非必要个人数据；若处理敏感数据，MUST 在规格与计划中写明范围、留存与访问控制。
@@ -60,6 +74,6 @@ Sync Impact Report
 
 - **效力**：本宪章优先于个人习惯与非书面约定；与宪章冲突的 PR SHOULD 先修订宪章或取得明确豁免并记录在案。
 - **修订**：修订 MUST 更新本文末尾版本号与 `Last Amended` 日期；语义化版本——MAJOR：原则删除或重新定义；MINOR：新增原则或重大扩展；PATCH：措辞与非语义澄清。
-- **合规**：审查时 SHOULD 对照「Core Principles」与「安全、隐私与依赖」做快速检查。
+- **合规**：审查时 SHOULD 对照「Core Principles」与「安全、隐私与依赖」做快速检查；涉及 `w2/db_query` 时额外对照「db_query 子项目技术约束」。
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-28 | **Last Amended**: 2026-04-28
+**Version**: 1.1.0 | **Ratified**: 2026-04-28 | **Last Amended**: 2026-05-07

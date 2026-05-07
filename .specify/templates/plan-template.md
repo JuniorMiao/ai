@@ -37,6 +37,7 @@
 - **安全红线**：是否涉及密钥、PII 或高风险依赖？若否，是否确认无秘密入库、无不当数据收集？
 - **可验证性**：验收标准与验证方式（测试/脚本/步骤）是否明确？
 - **清晰可审**：接口与命名是否与仓库惯例一致？AI 产出是否计划经可读性与边界审查？
+- **db_query（`w2/db_query`）**：若本特性落在该子项目，计划是否体现 Ergonomic Python + TypeScript、严格类型、Pydantic 模型、对外 JSON camelCase、且无必备认证路径？（详见宪章「db_query 子项目技术约束」）
 
 ## Project Structure
 
