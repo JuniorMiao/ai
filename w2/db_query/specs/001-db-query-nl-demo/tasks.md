@@ -44,13 +44,13 @@ description: "Task list for db-query-nl-demo (001)"
 
 **Checkpoint**: Foundation ready
 
-- [ ] T008 Implement SQLite schema DDL for `registered_database`, `database_metadata`, `llm_settings` in `w2/db_query/backend/src/db_query/storage/schema.sql`
-- [ ] T009 Implement connection and migration-on-boot helper in `w2/db_query/backend/src/db_query/storage/sqlite.py` using `DB_QUERY_SQLITE_PATH`
-- [ ] T010 Create Pydantic settings module in `w2/db_query/backend/src/db_query/config.py` (sqlite path, default max rows 1000)
-- [ ] T011 Create FastAPI app factory with `CORSMiddleware(allow_origins=["*"])` in `w2/db_query/backend/src/db_query/main.py`
-- [ ] T012 Add lifespan hook to initialize SQLite and attach to `app.state` in `w2/db_query/backend/src/db_query/main.py`
-- [ ] T013 [P] Add unified error JSON model `{ error: { code, message } }` (camelCase aliases) in `w2/db_query/backend/src/db_query/schemas/errors.py`
-- [ ] T014 [P] Add exception handlers registration in `w2/db_query/backend/src/db_query/main.py`
+- [x] T008 Implement SQLite schema DDL for `registered_database`, `database_metadata`, `llm_settings` in `w2/db_query/backend/src/db_query/storage/schema.sql`
+- [x] T009 Implement connection and migration-on-boot helper in `w2/db_query/backend/src/db_query/storage/sqlite.py` using `DB_QUERY_SQLITE_PATH`
+- [x] T010 Create Pydantic settings module in `w2/db_query/backend/src/db_query/config.py` (sqlite path, default max rows 1000)
+- [x] T011 Create FastAPI app factory with `CORSMiddleware(allow_origins=["*"])` in `w2/db_query/backend/src/db_query/main.py`
+- [x] T012 Add lifespan hook to initialize SQLite and attach to `app.state` in `w2/db_query/backend/src/db_query/main.py`
+- [x] T013 [P] Add unified error JSON model `{ error: { code, message } }` (camelCase aliases) in `w2/db_query/backend/src/db_query/schemas/errors.py`
+- [x] T014 [P] Add exception handlers registration in `w2/db_query/backend/src/db_query/main.py`
 
 ---
 
@@ -59,15 +59,15 @@ description: "Task list for db-query-nl-demo (001)"
 **Goal**: `GET/PUT /api/v1/dbs`、`GET /api/v1/dbs/{name}`；前端列表 + 元数据展示  
 **Independent Test**: 见 `spec.md` US1：有效连接返回表/视图或空库说明；无效连接返回错误
 
-- [ ] T015 [P] [US1] Add database DTOs (`RegisteredDatabaseListItem`, `PutDatabaseBody`, `DatabaseMetadataResponse`) with camelCase in `w2/db_query/backend/src/db_query/schemas/databases.py`
-- [ ] T016 [US1] Implement `registered_database` / `database_metadata` persistence in `w2/db_query/backend/src/db_query/repositories/databases.py`
-- [ ] T017 [US1] Implement PostgreSQL introspection (tables/views/columns) in `w2/db_query/backend/src/db_query/services/metadata.py` and serialize to JSON for `payload_json`
-- [ ] T018 [US1] Implement `GET /api/v1/dbs`, `PUT /api/v1/dbs/{name}`, `GET /api/v1/dbs/{name}` in `w2/db_query/backend/src/db_query/api/dbs.py` per `contracts/README.md`
-- [ ] T019 [US1] Include router from `w2/db_query/backend/src/db_query/api/dbs.py` in `w2/db_query/backend/src/db_query/main.py`
-- [ ] T020 [P] [US1] Add typed API client for `/api/v1/dbs` in `w2/db_query/frontend/src/api/databases.ts`
-- [ ] T021 [US1] Configure Refine `dataProvider` or equivalent REST hooks in `w2/db_query/frontend/src/App.tsx`
-- [ ] T022 [US1] Build database list and add-or-update connection form in `w2/db_query/frontend/src/pages/databases/ListPage.tsx`
-- [ ] T023 [US1] Build metadata tree/table view in `w2/db_query/frontend/src/pages/databases/DetailPage.tsx`
+- [x] T015 [P] [US1] Add database DTOs (`RegisteredDatabaseListItem`, `PutDatabaseBody`, `DatabaseMetadataResponse`) with camelCase in `w2/db_query/backend/src/db_query/schemas/databases.py`
+- [x] T016 [US1] Implement `registered_database` / `database_metadata` persistence in `w2/db_query/backend/src/db_query/repositories/databases.py`
+- [x] T017 [US1] Implement PostgreSQL introspection (tables/views/columns) in `w2/db_query/backend/src/db_query/services/metadata.py` and serialize to JSON for `payload_json`
+- [x] T018 [US1] Implement `GET /api/v1/dbs`, `PUT /api/v1/dbs/{name}`, `GET /api/v1/dbs/{name}` in `w2/db_query/backend/src/db_query/api/dbs.py` per `contracts/README.md`
+- [x] T019 [US1] Include router from `w2/db_query/backend/src/db_query/api/dbs.py` in `w2/db_query/backend/src/db_query/main.py`
+- [x] T020 [P] [US1] Add typed API client for `/api/v1/dbs` in `w2/db_query/frontend/src/api/databases.ts`
+- [x] T021 [US1] Configure Refine `dataProvider` or equivalent REST hooks in `w2/db_query/frontend/src/App.tsx`
+- [x] T022 [US1] Build database list and add-or-update connection form in `w2/db_query/frontend/src/pages/databases/ListPage.tsx`
+- [x] T023 [US1] Build metadata tree/table view in `w2/db_query/frontend/src/pages/databases/DetailPage.tsx`
 
 **Checkpoint**: US1 可独立演示
 

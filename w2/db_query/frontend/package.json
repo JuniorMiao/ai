@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.2",
@@ -18,12 +19,14 @@
     "@refinedev/simple-rest": "^6.0.1",
     "antd": "^6.3.7",
     "dayjs": "^1.11.20",
+    "node-sql-parser": "^5.4.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.52.0",
     "@tailwindcss/vite": "^4.2.4",
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",

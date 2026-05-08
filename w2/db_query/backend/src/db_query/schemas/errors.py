@@ -1,4 +1,9 @@
-"""Unified JSON error body (camelCase fields)."""
+"""Unified JSON error body for API responses (camelCase keys per constitution).
+
+Contract shape::
+
+    { "error": { "code": string, "message": string } }
+"""
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
