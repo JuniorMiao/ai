@@ -33,3 +33,8 @@ def prepare_select_sql(raw: str, max_rows: int) -> tuple[str, bool]:
 
     limited = tree.limit(max_rows)
     return limited.sql(dialect="postgres"), True
+
+
+def validate_and_apply_limit(raw: str, max_rows: int) -> tuple[str, bool]:
+    """Alias used by Phase 4 tasks; identical to :func:`prepare_select_sql`."""
+    return prepare_select_sql(raw, max_rows)

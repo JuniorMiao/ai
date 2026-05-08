@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS llm_settings (
     provider TEXT NOT NULL,
     base_url TEXT NOT NULL,
     api_key_ref TEXT,
+    api_key_secret TEXT,
     model TEXT NOT NULL,
     is_default INTEGER NOT NULL DEFAULT 0
 );

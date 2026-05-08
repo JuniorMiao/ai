@@ -10,6 +10,9 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from db_query.api import dbs as dbs_router
+from db_query.api import llm_settings as llm_settings_router
+from db_query.api import natural_query as natural_query_router
+from db_query.api import query as query_router
 from db_query.config import get_settings
 from db_query.schemas.errors import ErrorDetail, ErrorResponse
 from db_query.storage.sqlite import open_app_database
@@ -86,6 +89,9 @@ def create_app() -> FastAPI:
 
     _register_exception_handlers(application)
     application.include_router(dbs_router.router)
+    application.include_router(query_router.router)
+    application.include_router(llm_settings_router.router)
+    application.include_router(natural_query_router.router)
 
     @application.get("/health")
     def health() -> dict[str, str]:

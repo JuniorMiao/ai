@@ -1,14 +1,12 @@
-"""Natural language → SQL using OpenAI-compatible Chat API (optional)."""
+"""Natural language → SQL using OpenAI-compatible Chat API."""
 
 from __future__ import annotations
 
 import json
-import os
+import re
 from typing import Any
 
 from openai import OpenAI
-
-from db_query.services.metadata import fetch_schema_metadata
 
 
 def _schema_digest(metadata: dict[str, Any], max_chars: int = 12000) -> str:
@@ -19,30 +17,29 @@ def _schema_digest(metadata: dict[str, Any], max_chars: int = 12000) -> str:
 
 
 def generate_sql_from_prompt(
-    connection_url: str,
+    metadata: dict[str, Any],
     prompt: str,
     *,
-    model: str | None = None,
+    base_url: str,
+    api_key: str,
+    model: str,
 ) -> tuple[str, list[str]]:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not set; configure it to use natural-language SQL generation."
-        )
-
-    md = fetch_schema_metadata(connection_url)
-    digest = _schema_digest(md)
+    """Call chat completions with schema JSON context; return raw SQL text + warnings."""
+    digest = _schema_digest(metadata)
     sys_prompt = (
-        "You are a PostgreSQL expert. Given schema JSON and a user question, "
-        "reply with a single SELECT statement only, no markdown or commentary. "
-        "Use only tables/columns present in the schema."
+        "You translate questions into PostgreSQL SELECT queries.\n"
+        "Rules:\n"
+        "- Output exactly one SELECT statement. No markdown fences, no prose.\n"
+        "- Use only tables, views, and columns that appear in the provided schema JSON.\n"
+        "- Prefer explicit column lists over SELECT * unless the question asks for all columns.\n"
+        "- Use sensible aliases and ISO timestamp/date literals where appropriate.\n"
+        "- Do not use DDL, DML, or multiple statements.\n"
     )
-    user_content = f"Schema (JSON):\n{digest}\n\nQuestion:\n{prompt}"
+    user_content = f"Schema (JSON):\n{digest}\n\nQuestion:\n{prompt.strip()}"
 
-    client = OpenAI(api_key=api_key)
-    used_model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    client = OpenAI(api_key=api_key, base_url=base_url)
     resp = client.chat.completions.create(
-        model=used_model,
+        model=model,
         messages=[
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_content},
@@ -55,5 +52,8 @@ def generate_sql_from_prompt(
         lines = sql.split("\n")
         sql = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines)
         sql = sql.strip()
+        inner = re.match(r"^sql\s*", sql, flags=re.IGNORECASE)
+        if inner:
+            sql = sql[inner.end() :].strip()
     warnings: list[str] = []
     return sql, warnings

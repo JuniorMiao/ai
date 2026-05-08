@@ -78,14 +78,14 @@ description: "Task list for db-query-nl-demo (001)"
 **Goal**: sqlglot 单条 SELECT 校验、默认 LIMIT 1000、`POST /api/v1/dbs/{name}/query`；Monaco + 表格  
 **Independent Test**: 见 `spec.md` US2：合法 SELECT 返回行列；非法语句 400；无 LIMIT 时行数 ≤1000 且 `truncated`/`maxRows` 可见
 
-- [ ] T024 [US2] Implement `validate_and_apply_limit` using sqlglot (single SELECT, reject DML/multi-statement) in `w2/db_query/backend/src/db_query/services/sql_guard.py`
-- [ ] T025 [US2] Implement read-only execution returning columns/rows in `w2/db_query/backend/src/db_query/services/query_runner.py`
-- [ ] T026 [P] [US2] Add `QueryRequest` / `QueryResult` Pydantic models (camelCase) in `w2/db_query/backend/src/db_query/schemas/query.py`
-- [ ] T027 [US2] Implement `POST /api/v1/dbs/{name}/query` in `w2/db_query/backend/src/db_query/api/query.py`
-- [ ] T028 [US2] Register query router in `w2/db_query/backend/src/db_query/main.py`
-- [ ] T029 [P] [US2] Add `POST` query helper in `w2/db_query/frontend/src/api/query.ts`
-- [ ] T030 [P] [US2] Create Monaco wrapper component in `w2/db_query/frontend/src/components/SqlEditor.tsx`
-- [ ] T031 [US2] Build SQL workspace with Run and Ant Design `Table` for results in `w2/db_query/frontend/src/pages/query/SqlQueryPage.tsx`
+- [x] T024 [US2] Implement `validate_and_apply_limit` using sqlglot (single SELECT, reject DML/multi-statement) in `w2/db_query/backend/src/db_query/services/sql_guard.py`
+- [x] T025 [US2] Implement read-only execution returning columns/rows in `w2/db_query/backend/src/db_query/services/query_runner.py`
+- [x] T026 [P] [US2] Add `QueryRequest` / `QueryResult` Pydantic models (camelCase) in `w2/db_query/backend/src/db_query/schemas/query.py`
+- [x] T027 [US2] Implement `POST /api/v1/dbs/{name}/query` in `w2/db_query/backend/src/db_query/api/query.py`
+- [x] T028 [US2] Register query router in `w2/db_query/backend/src/db_query/main.py`
+- [x] T029 [P] [US2] Add `POST` query helper in `w2/db_query/frontend/src/api/query.ts`
+- [x] T030 [P] [US2] Create Monaco wrapper component in `w2/db_query/frontend/src/components/SqlEditor.tsx`
+- [x] T031 [US2] Build SQL workspace with Run and Ant Design `Table` for results in `w2/db_query/frontend/src/pages/query/SqlQueryPage.tsx`
 
 **Checkpoint**: US1 + US2 均可独立验收
 
@@ -96,15 +96,15 @@ description: "Task list for db-query-nl-demo (001)"
 **Goal**: `llm_settings` 持久化、OpenAI 兼容调用、`POST /api/v1/dbs/{name}/query/natural`；前端 NL 入口与设置页  
 **Independent Test**: 见 `spec.md` US3 与 `plan.md` 黄金问句；生成 SQL 须经 `sql_guard`；无配置时引导设置
 
-- [ ] T032 [P] [US3] Add LLM settings DTOs in `w2/db_query/backend/src/db_query/schemas/llm.py`
-- [ ] T033 [US3] Implement `llm_settings` repository in `w2/db_query/backend/src/db_query/repositories/llm_settings.py`
-- [ ] T034 [US3] Expose minimal `GET/PUT` (or `PATCH`) LLM config endpoints in `w2/db_query/backend/src/db_query/api/llm_settings.py`
-- [ ] T035 [US3] Implement NL→SQL with metadata context and strict system prompt in `w2/db_query/backend/src/db_query/services/nl_sql.py`
-- [ ] T036 [US3] Implement `POST /api/v1/dbs/{name}/query/natural` returning `{ sql, warnings }` then optionally reuse `query_runner` if product chooses execute-on-generate in `w2/db_query/backend/src/db_query/api/natural_query.py`
-- [ ] T037 [US3] Register LLM and natural routers in `w2/db_query/backend/src/db_query/main.py`
-- [ ] T038 [P] [US3] Add frontend API for natural query and LLM settings in `w2/db_query/frontend/src/api/natural.ts`
-- [ ] T039 [P] [US3] Build LLM configuration form in `w2/db_query/frontend/src/pages/settings/LlmSettingsPage.tsx`
-- [ ] T040 [US3] Extend query UI with NL prompt, generate flow, and empty-config guard in `w2/db_query/frontend/src/pages/query/NaturalQueryPanel.tsx`
+- [x] T032 [P] [US3] Add LLM settings DTOs in `w2/db_query/backend/src/db_query/schemas/llm.py`
+- [x] T033 [US3] Implement `llm_settings` repository in `w2/db_query/backend/src/db_query/repositories/llm_settings.py`
+- [x] T034 [US3] Expose minimal `GET/PUT` (or `PATCH`) LLM config endpoints in `w2/db_query/backend/src/db_query/api/llm_settings.py`
+- [x] T035 [US3] Implement NL→SQL with metadata context and strict system prompt in `w2/db_query/backend/src/db_query/services/nl_sql.py`
+- [x] T036 [US3] Implement `POST /api/v1/dbs/{name}/query/natural` returning `{ sql, warnings }` then optionally reuse `query_runner` if product chooses execute-on-generate in `w2/db_query/backend/src/db_query/api/natural_query.py`
+- [x] T037 [US3] Register LLM and natural routers in `w2/db_query/backend/src/db_query/main.py`
+- [x] T038 [P] [US3] Add frontend API for natural query and LLM settings in `w2/db_query/frontend/src/api/natural.ts`
+- [x] T039 [P] [US3] Build LLM configuration form in `w2/db_query/frontend/src/pages/settings/LlmSettingsPage.tsx`
+- [x] T040 [US3] Extend query UI with NL prompt, generate flow, and empty-config guard in `w2/db_query/frontend/src/pages/query/NaturalQueryPanel.tsx`
 
 **Checkpoint**: 三则用户故事均可演示
 

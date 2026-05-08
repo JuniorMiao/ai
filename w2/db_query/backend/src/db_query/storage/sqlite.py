@@ -27,6 +27,16 @@ def init_schema(conn: sqlite3.Connection, schema_sql: str) -> None:
     """Apply DDL / migrations script idempotently."""
     conn.executescript(schema_sql)
     conn.commit()
+    _migrate_llm_settings(conn)
+
+
+def _migrate_llm_settings(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after first schema version."""
+    info = conn.execute("PRAGMA table_info(llm_settings)").fetchall()
+    cols = {str(r[1]) for r in info}
+    if "api_key_secret" not in cols:
+        conn.execute("ALTER TABLE llm_settings ADD COLUMN api_key_secret TEXT")
+        conn.commit()
 
 
 def load_schema_sql() -> str:

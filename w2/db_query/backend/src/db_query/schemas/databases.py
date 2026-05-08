@@ -38,21 +38,30 @@ class DatabaseMetadataResponse(CamelModel):
     fetched_at: str
 
 
-class QueryRequest(CamelModel):
-    sql: str
-
-
-class QueryResult(CamelModel):
-    columns: list[str]
-    rows: list[list[Any]]
-    truncated: bool
-    max_rows: int
-
-
 class NaturalQueryRequest(CamelModel):
     prompt: str
+    llm_settings_id: int | None = Field(
+        default=None,
+        description="Use this LLM profile; omit to use the default profile",
+    )
 
 
 class NaturalQueryResponse(CamelModel):
     sql: str
     warnings: list[str] = Field(default_factory=list)
+
+
+# Re-export query contract models (canonical definitions in ``schemas/query.py``).
+from db_query.schemas.query import QueryRequest, QueryResult  # noqa: E402
+
+__all__ = [
+    "CamelModel",
+    "PutDatabaseBody",
+    "RegisteredDatabaseListItem",
+    "PutDatabaseResponse",
+    "DatabaseMetadataResponse",
+    "NaturalQueryRequest",
+    "NaturalQueryResponse",
+    "QueryRequest",
+    "QueryResult",
+]

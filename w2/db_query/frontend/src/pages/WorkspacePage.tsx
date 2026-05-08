@@ -1,7 +1,5 @@
 import { DeleteOutlined, ReloadOutlined } from '@ant-design/icons'
-import Editor from '@monaco-editor/react'
 import {
-  Alert,
   App as AntApp,
   Button,
   Empty,
@@ -10,13 +8,11 @@ import {
   Popconfirm,
   Space,
   Spin,
-  Table,
   Tooltip,
   Typography,
 } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import SchemaCatalog from '../components/SchemaCatalog'
 import {
   deleteDatabase,
@@ -27,8 +23,7 @@ import {
   type DatabaseMetadataResponse,
   type RegisteredDatabaseListItem,
 } from '../api/databases'
-import { executeQuery, type QueryResult } from '../api/query'
-import { validateSelectableSql } from '../utils/validateSelectableSql'
+import SqlQueryPage from './query/SqlQueryPage'
 
 const { Text } = Typography
 
@@ -59,14 +54,6 @@ export default function WorkspacePage() {
     db: string
     fetchedAt: string
     payload: MetadataPayload
-  } | null>(null)
-
-  const [sql, setSql] = useState('SELECT 1 AS ok;')
-  const [sqlSyntaxError, setSqlSyntaxError] = useState<string | null>(null)
-  const [queryLoading, setQueryLoading] = useState(false)
-  const [querySnapshot, setQuerySnapshot] = useState<{
-    db: string
-    result: QueryResult
   } | null>(null)
 
   const selectedDb = searchParams.get('db')
@@ -199,72 +186,26 @@ export default function WorkspacePage() {
     }
   }, [selectedDb, message])
 
-  const displayQuery =
-    selectedDb && querySnapshot?.db === selectedDb ? querySnapshot.result : null
-
-  const runQuery = async () => {
-    if (!selectedDb) {
-      message.warning('请先选择一个数据库连接')
-      return
-    }
-    const trimmed = sql.trim()
-    if (!trimmed) {
-      message.warning('请输入 SQL')
-      return
-    }
-    const syntax = validateSelectableSql(trimmed)
-    if (!syntax.ok) {
-      setSqlSyntaxError(syntax.message)
-      message.error(syntax.message)
-      return
-    }
-    setSqlSyntaxError(null)
-    setQueryLoading(true)
-    try {
-      const res = await executeQuery(selectedDb, trimmed)
-      setQuerySnapshot({ db: selectedDb, result: res })
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : '查询失败')
-    } finally {
-      setQueryLoading(false)
-    }
-  }
-
-  const resultColumns: ColumnsType<Record<string, unknown>> = useMemo(() => {
-    if (!displayQuery?.columns.length) return []
-    return displayQuery.columns.map((col: string) => ({
-      title: col,
-      dataIndex: col,
-      key: col,
-      ellipsis: true,
-      render: (v: unknown) =>
-        v === null || v === undefined ? (
-          <span className="text-slate-400">∅</span>
-        ) : (
-          String(v)
-        ),
-    }))
-  }, [displayQuery])
-
-  const resultRows = useMemo(() => {
-    if (!displayQuery) return []
-    return displayQuery.rows.map((row: unknown[], i: number) => {
-      const rec: Record<string, unknown> = { key: i }
-      displayQuery.columns.forEach((c: string, j: number) => {
-        rec[c] = row[j]
-      })
-      return rec
-    })
-  }, [displayQuery])
-
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-slate-100 lg:flex-row">
       <aside className="flex w-full shrink-0 flex-col border-slate-200 bg-white lg:h-full lg:w-[10%] lg:min-w-0 lg:border-r">
         <div className="border-b border-slate-200 px-4 py-3 lg:px-2 lg:py-2">
-          <Text strong className="text-base lg:text-sm">
-            db_query
-          </Text>
-          <div className="mt-0.5 text-xs text-slate-500 lg:text-[10px] lg:leading-tight">数据库连接</div>
+          <div className="flex flex-wrap items-start justify-between gap-1">
+            <div>
+              <Text strong className="text-base lg:text-sm">
+                db_query
+              </Text>
+              <div className="mt-0.5 text-xs text-slate-500 lg:text-[10px] lg:leading-tight">
+                数据库连接
+              </div>
+            </div>
+            <Link
+              to="/settings/llm"
+              className="shrink-0 text-[10px] text-blue-600 hover:underline lg:text-[9px]"
+            >
+              LLM 设置
+            </Link>
+          </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-2">
           <Form
@@ -433,83 +374,7 @@ export default function WorkspacePage() {
         </section>
 
         <main className="flex min-h-0 min-w-0 flex-col border-slate-200 bg-white lg:h-full lg:w-[75%] lg:min-w-0 lg:border-l lg:border-slate-200">
-          <section className="flex min-h-[240px] shrink-0 flex-col border-b border-slate-200 px-4 py-3">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <span className="text-sm font-medium text-slate-800">SQL 查询</span>
-                <Text type="secondary" className="ml-2 text-xs">
-                  PostgreSQL · 单条 SELECT · 点击「执行查询」时校验
-                </Text>
-              </div>
-              <Button
-                type="primary"
-                size="small"
-                loading={queryLoading}
-                disabled={!selectedDb}
-                onClick={() => void runQuery()}
-              >
-                执行查询
-              </Button>
-            </div>
-            {sqlSyntaxError ? (
-              <Alert type="error" showIcon className="mb-2" title={sqlSyntaxError} />
-            ) : (
-              <Alert
-                type="info"
-                showIcon
-                className="mb-2 py-1 text-xs [&_.ant-alert-title]:text-xs"
-                title="仅允许一条 SELECT；点击「执行查询」时在前端校验，通过后请求后端（后端仍会再次校验）。"
-              />
-            )}
-            <div className="min-h-[188px] overflow-hidden rounded border border-slate-200">
-              <Editor
-                height="188px"
-                defaultLanguage="sql"
-                value={sql}
-                onChange={(v) => {
-                  const next = v ?? ''
-                  setSql(next)
-                  setSqlSyntaxError(null)
-                }}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'on',
-                }}
-              />
-            </div>
-          </section>
-
-          <section className="flex min-h-0 flex-1 flex-col">
-            <div className="shrink-0 border-b border-slate-100 px-4 py-2">
-              <span className="text-sm font-medium text-slate-800">查询结果</span>
-            </div>
-            <div className="min-h-0 flex-1 overflow-auto p-2">
-              {!displayQuery ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="执行查询成功后，在此显示结果" />
-              ) : (
-                <>
-                  {displayQuery.truncated ? (
-                    <Alert
-                      type="info"
-                      showIcon
-                      className="mb-2"
-                      title={`结果已截断至最多 ${displayQuery.maxRows} 行（truncated）`}
-                    />
-                  ) : null}
-                  <Table<Record<string, unknown>>
-                    size="small"
-                    bordered
-                    scroll={{ x: 'max-content' }}
-                    columns={resultColumns}
-                    dataSource={resultRows}
-                    pagination={{ pageSize: 50, showSizeChanger: true, pageSizeOptions: [20, 50, 100] }}
-                  />
-                </>
-              )}
-            </div>
-          </section>
+          <SqlQueryPage selectedDb={selectedDb} />
         </main>
     </div>
   )

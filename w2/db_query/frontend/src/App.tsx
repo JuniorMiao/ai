@@ -4,6 +4,7 @@ import { Refine } from '@refinedev/core'
 import routerProvider from '@refinedev/react-router'
 import { App as AntApp, ConfigProvider, theme } from 'antd'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import LlmSettingsPage from './pages/settings/LlmSettingsPage'
 import WorkspacePage from './pages/WorkspacePage'
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
@@ -25,6 +26,7 @@ export default function App() {
           >
             <Routes>
               <Route path="/" element={<WorkspacePage />} />
+              <Route path="/settings/llm" element={<LlmSettingsPage />} />
             </Routes>
           </Refine>
         </AntApp>

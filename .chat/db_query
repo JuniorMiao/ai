@@ -1,2 +1,29 @@
 # 项目分析
 我要做一个利用cursor辅助编程的方式实现根据自然语言查询数据的demo项目，你分析该怎么入手，将分析文档输出到F:\AI-learn\ai\w2\db_query\spec文件夹，文档名称为analysis.md
+
+make help 报错
+make : 无法将“make”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括路径，请
+确保路径正确，然后再试一次。
+所在位置 行:1 字符: 1
++ make help
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (make:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+
+仔细阅读 ./w2/db_query 下面的代码，然后运行后端和前端，根据@w2/db_query/fixtures/test.rest 用 curl 测试后端已实现的路由；然后用 playwright 开前端进行测试，任何测试问题，think ultra hard and fix
+
+调整前端界面，左侧是数据库链接，右侧上面是数据库表和视图，右侧中部是sql输入框，右侧下部是查询结果。
+
+增加数据库删除功能，每个数据库都要有刷新功能可以获取最新的表和视图。
+
+页面再增加一栏放数据库表和视图，补充完整的schame，sql语句和查询结果单独一栏。sql语句要严格校验语法。
+
+利用LLM将自然语言转sql报错：{
+    "error": {
+        "code": "http_502",
+        "message": "Natural language generation failed: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}"
+    }
+}
+
+可以设置不同的LLM，并切换选择使用哪个
