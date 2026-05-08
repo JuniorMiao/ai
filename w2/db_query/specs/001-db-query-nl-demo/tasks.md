@@ -28,13 +28,13 @@ description: "Task list for db-query-nl-demo (001)"
 
 **Purpose**: 初始化 monorepo 子项目与工具链
 
-- [ ] T001 Create directory layout `w2/db_query/backend/`, `w2/db_query/frontend/`, `w2/db_query/backend/src/db_query/`, `w2/db_query/backend/tests/` per `plan.md`
-- [ ] T002 Initialize Python package with uv in `w2/db_query/backend/pyproject.toml` (FastAPI, Uvicorn, Pydantic v2, pydantic-settings, sqlglot, asyncpg or psycopg, openai, httpx, ruff, pytest)
-- [ ] T003 [P] Initialize Vite + React + TypeScript strict in `w2/db_query/frontend/` with Refine 5, Ant Design, Tailwind CSS, `@monaco-editor/react`
-- [ ] T004 [P] Add `w2/db_query/backend/.env.example` documenting `DB_QUERY_SQLITE_PATH` and `VITE_API_URL` / `OPENAI_API_KEY` placeholders
-- [ ] T005 [P] Add `w2/db_query/frontend/.env.example` with `VITE_API_BASE_URL=http://127.0.0.1:8000`
-- [ ] T006 [P] Configure Ruff and pytest in `w2/db_query/backend/pyproject.toml`
-- [ ] T007 [P] Configure ESLint and `tsconfig.json` strict mode in `w2/db_query/frontend/`
+- [x] T001 Create directory layout `w2/db_query/backend/`, `w2/db_query/frontend/`, `w2/db_query/backend/src/db_query/`, `w2/db_query/backend/tests/` per `plan.md`
+- [x] T002 Initialize Python package with uv in `w2/db_query/backend/pyproject.toml` (FastAPI, Uvicorn, Pydantic v2, pydantic-settings, sqlglot, asyncpg or psycopg, openai, httpx, ruff, pytest)
+- [x] T003 [P] Initialize Vite + React + TypeScript strict in `w2/db_query/frontend/` with Refine 5, Ant Design, Tailwind CSS, `@monaco-editor/react`
+- [x] T004 [P] Add `w2/db_query/backend/.env.example` documenting `DB_QUERY_SQLITE_PATH` and `VITE_API_URL` / `OPENAI_API_KEY` placeholders
+- [x] T005 [P] Add `w2/db_query/frontend/.env.example` with `VITE_API_BASE_URL=http://127.0.0.1:8000`
+- [x] T006 [P] Configure Ruff and pytest in `w2/db_query/backend/pyproject.toml`
+- [x] T007 [P] Configure ESLint and `tsconfig.json` strict mode in `w2/db_query/frontend/`
 
 ---
 

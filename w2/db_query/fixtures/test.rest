@@ -1,0 +1,48 @@
+@baseUrl = http://127.0.0.1:8000
+@api = {{baseUrl}}/api/v1
+@dbName = demo
+
+###
+
+# @name openapi (FastAPI 自动生成，服务启动后可用)
+GET {{baseUrl}}/openapi.json
+
+###
+
+# @name list-databases
+GET {{api}}/dbs
+
+###
+
+# @name register-database (按需修改连接串；需本地 PostgreSQL 可达)
+PUT {{api}}/dbs/{{dbName}}
+Content-Type: application/json
+
+{
+  "url": "postgres://postgres:postgres@localhost:5432/postgres"
+}
+
+###
+
+# @name get-database-metadata
+GET {{api}}/dbs/{{dbName}}
+
+###
+
+# @name execute-sql
+POST {{api}}/dbs/{{dbName}}/query
+Content-Type: application/json
+
+{
+  "sql": "SELECT 1 AS x"
+}
+
+###
+
+# @name natural-language-sql (需配置 LLM；未实现时可能 501/500)
+POST {{api}}/dbs/{{dbName}}/query/natural
+Content-Type: application/json
+
+{
+  "prompt": "查询用户表的所有信息"
+}

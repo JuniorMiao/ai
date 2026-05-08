@@ -36,6 +36,9 @@ build/
 .cursor/debug.log
 .cursor/*.log
 
+# --- Node (monorepos / w2/db_query frontend) ---
+node_modules/
+
 # --- db_query local SQLite (connection URLs; keep out of Git) ---
 w2/db_query/db_query.db
 
