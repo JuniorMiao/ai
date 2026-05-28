@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from db_query.adapters import resolve_backend
 from db_query.repositories import databases as db_repo
 from db_query.schemas.databases import (
     DatabaseMetadataResponse,
@@ -15,7 +16,6 @@ from db_query.schemas.databases import (
     PutDatabaseResponse,
     RegisteredDatabaseListItem,
 )
-from db_query.services.metadata import fetch_schema_metadata
 
 router = APIRouter(prefix="/api/v1", tags=["dbs"])
 
@@ -42,18 +42,26 @@ def register_database(name: str, body: PutDatabaseBody, request: Request) -> Put
     conn = request.app.state.db
     now = _utc_now_iso()
     try:
-        meta = fetch_schema_metadata(body.url)
+        adapter = resolve_backend(
+            connection_url=body.url, backend_hint=body.backend_kind
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        meta = adapter.fetch_schema_metadata(body.url)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
             detail=f"Cannot connect or introspect database: {exc}",
         ) from exc
 
+    meta.setdefault("backendKind", adapter.backend_id)
     payload = json.dumps(meta)
     db_repo.upsert_registration_and_metadata(
         conn,
         name=name,
         url=body.url,
+        backend_kind=adapter.backend_id,
         now_iso=now,
         metadata_json=payload,
     )
@@ -72,21 +80,33 @@ def delete_database(name: str, request: Request) -> Response:
 
 @router.post("/dbs/{name}/refresh")
 def refresh_database_metadata(name: str, request: Request) -> DatabaseMetadataResponse:
-    """Re-run PostgreSQL introspection using the stored URL and update SQLite cache."""
+    """Re-run SQL introspection using the stored URL and update SQLite cache."""
     conn = request.app.state.db
     url = db_repo.get_connection_url(conn, name)
     if not url:
         raise HTTPException(status_code=404, detail="Unknown database name")
+    hint = db_repo.get_backend_kind(conn, name)
+    try:
+        adapter = resolve_backend(connection_url=url, backend_hint=hint)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     now = _utc_now_iso()
     try:
-        meta = fetch_schema_metadata(url)
+        meta = adapter.fetch_schema_metadata(url)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
             detail=f"Cannot connect or introspect database: {exc}",
         ) from exc
+    meta.setdefault("backendKind", adapter.backend_id)
     payload = json.dumps(meta)
-    db_repo.replace_cached_metadata(conn, name=name, now_iso=now, metadata_json=payload)
+    db_repo.replace_cached_metadata(
+        conn,
+        name=name,
+        now_iso=now,
+        metadata_json=payload,
+        backend_kind=adapter.backend_id,
+    )
     return DatabaseMetadataResponse(
         name=name,
         schema_snapshot=meta,

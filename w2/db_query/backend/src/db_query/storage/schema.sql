@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS registered_database (
     name TEXT PRIMARY KEY,
     url TEXT NOT NULL,
+    backend_kind TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );

@@ -17,6 +17,8 @@ from db_query.config import get_settings
 from db_query.schemas.errors import ErrorDetail, ErrorResponse
 from db_query.storage.sqlite import open_app_database
 
+import db_query.adapters  # noqa: F401 — register postgres/mysql backends at import
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -94,8 +96,10 @@ def create_app() -> FastAPI:
     application.include_router(natural_query_router.router)
 
     @application.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health() -> dict[str, object]:
+        from db_query.adapters import known_backend_ids
+
+        return {"status": "ok", "sqlBackends": sorted(known_backend_ids())}
 
     return application
 

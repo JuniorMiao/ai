@@ -2,15 +2,23 @@ import {
   Alert,
   App as AntApp,
   Button,
+  Dropdown,
   Empty,
   Table,
   Typography,
 } from 'antd'
+import type { MenuProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { DownloadOutlined } from '@ant-design/icons'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { listLlmSettings, type LlmSettings } from '../../api/natural'
 import { executeQuery, type QueryResult } from '../../api/query'
 import SqlEditor from '../../components/SqlEditor'
+import {
+  buildExportBasename,
+  exportQueryResultToCsv,
+  exportQueryResultToExcel,
+} from '../../utils/exportQueryResult'
 import { validateSelectableSql } from '../../utils/validateSelectableSql'
 import NaturalQueryPanel, { NL_LLM_CHOICE_KEY } from './NaturalQueryPanel'
 
@@ -30,6 +38,7 @@ export default function SqlQueryPage({ selectedDb }: Props) {
   const [sql, setSql] = useState('SELECT 1 AS ok;')
   const [sqlSyntaxError, setSqlSyntaxError] = useState<string | null>(null)
   const [queryLoading, setQueryLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   const [querySnapshot, setQuerySnapshot] = useState<{
     db: string
     result: QueryResult
@@ -127,6 +136,44 @@ export default function SqlQueryPage({ selectedDb }: Props) {
     })
   }, [displayQuery])
 
+  const handleExport = useCallback(
+    async (format: 'csv' | 'xlsx') => {
+      if (!displayQuery || !selectedDb) return
+      const base = buildExportBasename(selectedDb)
+      setExportLoading(true)
+      try {
+        if (format === 'csv') {
+          exportQueryResultToCsv(displayQuery.columns, displayQuery.rows, base)
+          message.success('已导出 CSV')
+        } else {
+          await exportQueryResultToExcel(displayQuery.columns, displayQuery.rows, base)
+          message.success('已导出 Excel')
+        }
+      } catch (e) {
+        message.error(e instanceof Error ? e.message : '导出失败')
+      } finally {
+        setExportLoading(false)
+      }
+    },
+    [displayQuery, message, selectedDb],
+  )
+
+  const exportMenuItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        key: 'csv',
+        label: '导出 CSV',
+        onClick: () => void handleExport('csv'),
+      },
+      {
+        key: 'xlsx',
+        label: '导出 Excel (.xlsx)',
+        onClick: () => void handleExport('xlsx'),
+      },
+    ],
+    [handleExport],
+  )
+
   return (
     <>
         <section className="shrink-0 border-b border-slate-200 px-4 py-3">
@@ -147,7 +194,7 @@ export default function SqlQueryPage({ selectedDb }: Props) {
           <div>
             <span className="text-sm font-medium text-slate-800">SQL 查询</span>
             <Text type="secondary" className="ml-2 text-xs">
-              PostgreSQL · 单条 SELECT · 点击「执行查询」时校验
+              单条 SELECT · 点击「执行查询」时校验
             </Text>
           </div>
           <Button
@@ -180,8 +227,18 @@ export default function SqlQueryPage({ selectedDb }: Props) {
       </section>
 
       <section className="flex min-h-0 flex-1 flex-col">
-        <div className="shrink-0 border-b border-slate-100 px-4 py-2">
+        <div className="shrink-0 border-b border-slate-100 px-4 py-2 flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm font-medium text-slate-800">查询结果</span>
+          <Dropdown menu={{ items: exportMenuItems }} disabled={!displayQuery} trigger={['click']}>
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              loading={exportLoading}
+              disabled={!displayQuery}
+            >
+              导出
+            </Button>
+          </Dropdown>
         </div>
         <div className="min-h-0 flex-1 overflow-auto p-2">
           {!displayQuery ? (

@@ -21,6 +21,8 @@ async function parseJson<T>(res: Response): Promise<T> {
 
 export type RegisteredDatabaseListItem = {
   name: string
+  /** Logical backend: postgres, mysql, … */
+  backendKind?: string | null
   createdAt?: string
   updatedAt?: string
 }
@@ -41,11 +43,17 @@ export async function listDatabases(): Promise<RegisteredDatabaseListItem[]> {
   return parseJson<RegisteredDatabaseListItem[]>(res)
 }
 
-export async function putDatabase(name: string, url: string): Promise<PutDatabaseResponse> {
+export async function putDatabase(
+  name: string,
+  url: string,
+  backendKind?: string | null,
+): Promise<PutDatabaseResponse> {
+  const body: { url: string; backendKind?: string } = { url }
+  if (backendKind) body.backendKind = backendKind
   const res = await fetch(`${base}/api/v1/dbs/${encodeURIComponent(name)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify(body),
   })
   return parseJson<PutDatabaseResponse>(res)
 }

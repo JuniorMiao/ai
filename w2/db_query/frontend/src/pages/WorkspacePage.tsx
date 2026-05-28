@@ -6,6 +6,7 @@ import {
   Form,
   Input,
   Popconfirm,
+  Select,
   Space,
   Spin,
   Tooltip,
@@ -27,6 +28,17 @@ import SqlQueryPage from './query/SqlQueryPage'
 
 const { Text } = Typography
 
+function inferBackendKindFromUrl(url: string): string | undefined {
+  const u = url.trim().toLowerCase()
+  if (u.startsWith('mysql://') || u.startsWith('mysql+pymysql://') || u.startsWith('mariadb://')) {
+    return 'mysql'
+  }
+  if (u.startsWith('postgres://') || u.startsWith('postgresql://')) {
+    return 'postgres'
+  }
+  return undefined
+}
+
 type MetadataPayload = {
   schemas?: string[]
   tables?: {
@@ -44,6 +56,7 @@ type MetadataPayload = {
 
 export default function WorkspacePage() {
   const { message } = AntApp.useApp()
+  const [form] = Form.useForm()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [listLoading, setListLoading] = useState(true)
@@ -209,13 +222,25 @@ export default function WorkspacePage() {
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-2">
           <Form
+            form={form}
             layout="vertical"
             size="small"
             className="mb-4 lg:mb-2 [&_.ant-form-item]:mb-3 lg:[&_.ant-form-item]:mb-2 [&_.ant-form-item-label>label]:text-sm lg:[&_.ant-form-item-label>label]:text-[11px] lg:[&_.ant-form-item-label]:pb-0"
-            onFinish={async (v: { logicalName: string; url: string }) => {
+            onFinish={async (v: {
+              logicalName: string
+              url: string
+              backendKind?: string
+            }) => {
               setSubmitting(true)
               try {
-                await putDatabase(v.logicalName.trim(), v.url.trim())
+                const url = v.url.trim()
+                const inferred = inferBackendKindFromUrl(url)
+                const bk = inferred ?? v.backendKind?.trim()
+                await putDatabase(
+                  v.logicalName.trim(),
+                  url,
+                  bk && bk.length > 0 ? bk : undefined,
+                )
                 message.success('已保存并拉取元数据')
                 const rows = await refreshList()
                 const name = v.logicalName.trim()
@@ -231,7 +256,27 @@ export default function WorkspacePage() {
               <Input placeholder="demo" autoComplete="off" className="lg:text-xs" />
             </Form.Item>
             <Form.Item label="连接串" name="url" rules={[{ required: true }]}>
-              <Input.TextArea rows={3} placeholder="postgres://..." autoComplete="off" className="lg:text-xs" />
+              <Input.TextArea
+                rows={3}
+                placeholder="postgres://… 或 mysql://user:pass@host:3306/dbname"
+                autoComplete="off"
+                className="lg:text-xs"
+                onChange={(e) => {
+                  const inferred = inferBackendKindFromUrl(e.target.value)
+                  if (inferred) form.setFieldValue('backendKind', inferred)
+                }}
+              />
+            </Form.Item>
+            <Form.Item label="数据库类型（可选）" name="backendKind">
+              <Select
+                allowClear
+                placeholder="自动识别（按 URL 协议）"
+                className="lg:text-xs"
+                options={[
+                  { value: 'postgres', label: 'PostgreSQL' },
+                  { value: 'mysql', label: 'MySQL / MariaDB' },
+                ]}
+              />
             </Form.Item>
             <Form.Item className="!mb-2">
               <Space wrap>
@@ -273,8 +318,9 @@ export default function WorkspacePage() {
                       </div>
                       <div
                         className="truncate text-xs text-slate-400 lg:text-[10px] lg:leading-tight"
-                        title={item.updatedAt ?? item.createdAt}
+                        title={item.updatedAt ?? item.createdAt ?? ''}
                       >
+                        {item.backendKind ? `${item.backendKind} · ` : ''}
                         {item.updatedAt ?? item.createdAt}
                       </div>
                     </div>

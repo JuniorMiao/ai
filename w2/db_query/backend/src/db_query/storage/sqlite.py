@@ -28,6 +28,7 @@ def init_schema(conn: sqlite3.Connection, schema_sql: str) -> None:
     conn.executescript(schema_sql)
     conn.commit()
     _migrate_llm_settings(conn)
+    _migrate_registered_database_backend(conn)
 
 
 def _migrate_llm_settings(conn: sqlite3.Connection) -> None:
@@ -37,6 +38,40 @@ def _migrate_llm_settings(conn: sqlite3.Connection) -> None:
     if "api_key_secret" not in cols:
         conn.execute("ALTER TABLE llm_settings ADD COLUMN api_key_secret TEXT")
         conn.commit()
+
+
+def _migrate_registered_database_backend(conn: sqlite3.Connection) -> None:
+    """Persist logical SQL backend kind (PostgreSQL / MySQL / …) per registration."""
+    info = conn.execute("PRAGMA table_info(registered_database)").fetchall()
+    cols = {str(r[1]) for r in info}
+    if "backend_kind" not in cols:
+        conn.execute("ALTER TABLE registered_database ADD COLUMN backend_kind TEXT")
+        conn.commit()
+
+    from db_query.adapters.resolver import infer_backend_id
+
+    rows = conn.execute(
+        """
+        SELECT name, url FROM registered_database
+        WHERE backend_kind IS NULL OR TRIM(backend_kind) = ''
+        """
+    ).fetchall()
+    if not rows:
+        return
+
+    updates: list[tuple[str, str]] = []
+    for r in rows:
+        name = str(r["name"])
+        raw_url = str(r["url"])
+        try:
+            bid = infer_backend_id(raw_url)
+        except ValueError:
+            continue
+        updates.append((bid, name))
+    if not updates:
+        return
+    conn.executemany("UPDATE registered_database SET backend_kind = ? WHERE name = ?", updates)
+    conn.commit()
 
 
 def load_schema_sql() -> str:

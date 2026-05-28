@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1", tags=["llm-settings"])
 
 @router.get("/llm-providers", response_model=LlmProviderCatalogResponse)
 def list_llm_providers() -> LlmProviderCatalogResponse:
-    """Registered vendors (same source as ``LLM_PROVIDER_SPECS`` / :func:`iter_provider_specs`) for UI."""
+    """Registered vendors from LLM_PROVIDER_SPECS / iter_provider_specs — drives UI."""
     items: list[LlmProviderCatalogItem] = []
     for spec in iter_provider_specs():
         primary = spec.env_key_names[0] if spec.env_key_names else ""

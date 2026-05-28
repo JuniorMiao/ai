@@ -9,7 +9,9 @@ def test_health() -> None:
     with TestClient(app) as client:
         res = client.get("/health")
         assert res.status_code == 200
-        assert res.json()["status"] == "ok"
+        body = res.json()
+        assert body["status"] == "ok"
+        assert "mysql" in body.get("sqlBackends", [])
 
 
 def test_list_dbs_json_array() -> None:

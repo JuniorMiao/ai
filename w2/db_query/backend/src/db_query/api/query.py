@@ -6,6 +6,7 @@ import sqlite3
 
 from fastapi import APIRouter, HTTPException, Request
 
+from db_query.adapters import resolve_backend
 from db_query.config import get_settings
 from db_query.repositories import databases as db_repo
 from db_query.schemas.query import QueryRequest, QueryResult
@@ -27,12 +28,21 @@ def execute_query(name: str, body: QueryRequest, request: Request) -> QueryResul
     conn = request.app.state.db
     settings = get_settings()
     url = _require_registered_url(conn, name)
+    hint = db_repo.get_backend_kind(conn, name)
     try:
-        sql_text, truncated = validate_and_apply_limit(body.sql, settings.query_max_rows)
+        adapter = resolve_backend(connection_url=url, backend_hint=hint)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        sql_text, truncated = validate_and_apply_limit(
+            body.sql,
+            settings.query_max_rows,
+            sqlglot_dialect=adapter.sqlglot_dialect,
+        )
     except SqlGuardError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
-        columns, tuples = run_select(url, sql_text)
+        columns, tuples = run_select(adapter, url, sql_text)
     except Exception as exc:
         raise HTTPException(
             status_code=502,

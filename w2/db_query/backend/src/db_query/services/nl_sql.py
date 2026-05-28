@@ -23,17 +23,22 @@ def generate_sql_from_prompt(
     base_url: str,
     api_key: str,
     model: str,
+    dialect_label: str,
+    dialect_extra_rules: str = "",
 ) -> tuple[str, list[str]]:
     """Call chat completions with schema JSON context; return raw SQL text + warnings."""
     digest = _schema_digest(metadata)
+    extra = dialect_extra_rules.strip()
+    optional_block = f"\nDialect-specific hints:\n{extra}\n" if extra else ""
     sys_prompt = (
-        "You translate questions into PostgreSQL SELECT queries.\n"
+        f"You translate questions into {dialect_label} SELECT queries.\n"
         "Rules:\n"
         "- Output exactly one SELECT statement. No markdown fences, no prose.\n"
         "- Use only tables, views, and columns that appear in the provided schema JSON.\n"
         "- Prefer explicit column lists over SELECT * unless the question asks for all columns.\n"
-        "- Use sensible aliases and ISO timestamp/date literals where appropriate.\n"
+        "- Use sensible aliases and literals appropriate to the dialect.\n"
         "- Do not use DDL, DML, or multiple statements.\n"
+        f"{optional_block}"
     )
     user_content = f"Schema (JSON):\n{digest}\n\nQuestion:\n{prompt.strip()}"
 

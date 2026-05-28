@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "sqlglot>=26",
     "psycopg[binary]>=3.2",
+    "pymysql>=1.1",
     "openai>=1.59",
     "httpx>=0.28",
 ]

@@ -4,7 +4,7 @@
 
 - Python 3.12+，已安装 **uv**  
 - Node.js 20+，**pnpm** 或 **npm**  
-- 可选：本地 **PostgreSQL**（用于验收连接）
+- 可选：本地 **PostgreSQL** 或 **MySQL**（用于验收连接）；URL 协议决定驱动（`postgres://…`、`mysql://…` / `mysql+pymysql://…`）。
 
 ## 后端（`w2/db_query/backend`）
 
@@ -38,15 +38,31 @@ npm install
 npm run dev
 ```
 
-将 `.env` 中 **`VITE_API_URL`**（或 Refine 使用的变量）指向 `http://127.0.0.1:8000`。
+将 `.env` 中 **`VITE_API_BASE_URL`**（见 `frontend/.env.example`）指向 `http://127.0.0.1:8000`。
 
 ## 登记数据库并查询（curl）
+
+### PostgreSQL
 
 ```bash
 curl -X PUT http://127.0.0.1:8000/api/v1/dbs/demo ^
   -H "Content-Type: application/json" ^
   -d "{\"url\":\"postgres://postgres:postgres@localhost:5432/postgres\"}"
+```
 
+### MySQL（连接串须带库名路径，如 `/mydb`）
+
+```bash
+curl -X PUT http://127.0.0.1:8000/api/v1/dbs/mysql ^
+  -H "Content-Type: application/json" ^
+  -d "{\"url\":\"mysql://root:secret@127.0.0.1:3306/mydb\"}"
+```
+
+若协议无法唯一确定驱动，可加 `backendKind`：`"backendKind":"postgres"` 或 `"mysql"`。
+
+### 查询
+
+```bash
 curl http://127.0.0.1:8000/api/v1/dbs/demo
 
 curl -X POST http://127.0.0.1:8000/api/v1/dbs/demo/query ^

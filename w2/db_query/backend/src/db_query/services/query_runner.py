@@ -1,7 +1,13 @@
-"""Run validated read-only SQL against the registered PostgreSQL URL."""
+"""Run validated read-only SQL against the registered connection URL."""
 
 from __future__ import annotations
 
-from db_query.services.query_pg import run_select
+from typing import Any
 
-__all__ = ["run_select"]
+from db_query.adapters.base import SqlBackendAdapter
+
+
+def run_select(
+    adapter: SqlBackendAdapter, connection_url: str, sql: str
+) -> tuple[list[str], list[tuple[Any, ...]]]:
+    return adapter.execute_select(connection_url, sql)

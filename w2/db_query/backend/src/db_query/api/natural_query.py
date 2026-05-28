@@ -1,6 +1,6 @@
 """HTTP route for natural-language SQL generation under `/api/v1/dbs/*/query/natural`.
 
-Product choice (T036): **Return validated SQL only** — does not execute against PostgreSQL.
+Product choice (T036): **Return validated SQL only** — does not execute against the DB.
 Users confirm or edit in the UI, then POST `/api/v1/dbs/{name}/query` as usual.
 """
 
@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
+from db_query.adapters import resolve_backend
 from db_query.config import get_settings
 from db_query.repositories import databases as db_repo
 from db_query.repositories import llm_settings as llm_repo
@@ -25,8 +26,15 @@ def natural_query(name: str, body: NaturalQueryRequest, request: Request) -> Nat
     conn = request.app.state.db
     settings = get_settings()
 
-    if not db_repo.get_connection_url(conn, name):
+    url = db_repo.get_connection_url(conn, name)
+    if not url:
         raise HTTPException(status_code=404, detail="Unknown database name")
+
+    hint = db_repo.get_backend_kind(conn, name)
+    try:
+        adapter = resolve_backend(connection_url=url, backend_hint=hint)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     cached = db_repo.get_cached_metadata(conn, name)
     if not cached:
@@ -63,13 +71,19 @@ def natural_query(name: str, body: NaturalQueryRequest, request: Request) -> Nat
             base_url=base_url,
             api_key=api_key,
             model=model,
+            dialect_label=adapter.llm_dialect_label(),
+            dialect_extra_rules=adapter.llm_dialect_rules(),
         )
     except Exception as exc:
         status, detail = map_llm_upstream_error(exc)
         raise HTTPException(status_code=status, detail=detail) from exc
 
     try:
-        sql_text, _truncated = validate_and_apply_limit(sql_raw, settings.query_max_rows)
+        sql_text, _truncated = validate_and_apply_limit(
+            sql_raw,
+            settings.query_max_rows,
+            sqlglot_dialect=adapter.sqlglot_dialect,
+        )
     except SqlGuardError as exc:
         raise HTTPException(
             status_code=400,

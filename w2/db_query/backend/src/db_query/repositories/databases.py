@@ -1,4 +1,4 @@
-"""SQLite persistence for registered PostgreSQL connections and cached metadata."""
+"""SQLite persistence for registered database connections and cached metadata."""
 
 from __future__ import annotations
 
@@ -11,11 +11,16 @@ from db_query.schemas.databases import RegisteredDatabaseListItem
 
 def list_registered(conn: sqlite3.Connection) -> list[RegisteredDatabaseListItem]:
     cur = conn.execute(
-        "SELECT name, created_at, updated_at FROM registered_database ORDER BY name"
+        """
+        SELECT name, backend_kind, created_at, updated_at
+        FROM registered_database
+        ORDER BY name
+        """
     )
     return [
         RegisteredDatabaseListItem(
             name=r["name"],
+            backend_kind=r["backend_kind"] if r["backend_kind"] else None,
             created_at=r["created_at"],
             updated_at=r["updated_at"],
         )
@@ -30,23 +35,32 @@ def get_connection_url(conn: sqlite3.Connection, name: str) -> str | None:
     return str(row[0]) if row else None
 
 
+def get_backend_kind(conn: sqlite3.Connection, name: str) -> str | None:
+    row = conn.execute(
+        "SELECT backend_kind FROM registered_database WHERE name = ?", (name,)
+    ).fetchone()
+    return str(row[0]).strip().lower() if row and row[0] else None
+
+
 def upsert_registration_and_metadata(
     conn: sqlite3.Connection,
     *,
     name: str,
     url: str,
+    backend_kind: str,
     now_iso: str,
     metadata_json: str,
 ) -> None:
     conn.execute(
         """
-        INSERT INTO registered_database (name, url, created_at, updated_at)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO registered_database (name, url, backend_kind, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(name) DO UPDATE SET
           url = excluded.url,
+          backend_kind = excluded.backend_kind,
           updated_at = excluded.updated_at
         """,
-        (name, url, now_iso, now_iso),
+        (name, url, backend_kind, now_iso, now_iso),
     )
     conn.execute(
         """
@@ -99,11 +113,16 @@ def replace_cached_metadata(
     name: str,
     now_iso: str,
     metadata_json: str,
+    backend_kind: str | None = None,
 ) -> None:
     """Refresh introspection snapshot and bump ``registered_database.updated_at``."""
     conn.execute(
-        "UPDATE registered_database SET updated_at = ? WHERE name = ?",
-        (now_iso, name),
+        """
+        UPDATE registered_database
+        SET updated_at = ?, backend_kind = COALESCE(?, backend_kind)
+        WHERE name = ?
+        """,
+        (now_iso, backend_kind, name),
     )
     conn.execute(
         """

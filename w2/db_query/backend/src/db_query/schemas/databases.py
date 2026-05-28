@@ -15,12 +15,23 @@ class CamelModel(BaseModel):
 
 class PutDatabaseBody(CamelModel):
     url: str
+    backend_kind: str | None = Field(
+        default=None,
+        description=(
+            "Logical backend id: postgres | mysql | … Omit to infer from URL scheme "
+            "(e.g. postgres://, mysql://)."
+        ),
+    )
 
 
 class RegisteredDatabaseListItem(CamelModel):
     """One row from ``GET /api/v1/dbs``."""
 
     name: str
+    backend_kind: str | None = Field(
+        default=None,
+        description="Registered SQL backend driver id (postgres, mysql, …).",
+    )
     created_at: str | None = None
     updated_at: str | None = None
 

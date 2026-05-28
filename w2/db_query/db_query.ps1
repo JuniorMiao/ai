@@ -21,6 +21,23 @@ $Root = $PSScriptRoot
 $Backend = Join-Path $Root "backend"
 $Frontend = Join-Path $Root "frontend"
 
+# Cursor 终端有时未继承系统 PATH；确保 npm/node 可用（Node 默认安装路径）
+$NodeDir = "C:\Program Files\nodejs"
+if ((Test-Path $NodeDir) -and ($env:Path -notlike "*$NodeDir*")) {
+    $env:Path = "$NodeDir;$env:Path"
+}
+
+function Invoke-Npm {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$NpmArgs)
+    $npmCmd = if (Test-Path (Join-Path $NodeDir "npm.cmd")) {
+        Join-Path $NodeDir "npm.cmd"
+    } else {
+        "npm.cmd"
+    }
+    & $npmCmd @NpmArgs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 function Invoke-Backend {
     param([scriptblock]$Action)
     Push-Location $Backend
@@ -61,13 +78,13 @@ switch ($Target) {
         Invoke-Backend { uv sync --all-groups }
     }
     "install-frontend" {
-        Invoke-Frontend { npm install }
+        Invoke-Frontend { Invoke-Npm install }
     }
     "dev-backend" {
         Invoke-Backend { uv run uvicorn db_query.main:app --reload --host $ListenHost --port $Port }
     }
     "dev-frontend" {
-        Invoke-Frontend { npm run dev }
+        Invoke-Frontend { Invoke-Npm run dev }
     }
     "lint" {
         & (Join-Path $Root "db_query.ps1") lint-backend
@@ -77,13 +94,13 @@ switch ($Target) {
         Invoke-Backend { uv run ruff check src tests }
     }
     "lint-frontend" {
-        Invoke-Frontend { npm run lint }
+        Invoke-Frontend { Invoke-Npm run lint }
     }
     "test-backend" {
         Invoke-Backend { uv run pytest }
     }
     "build-frontend" {
-        Invoke-Frontend { npm run build }
+        Invoke-Frontend { Invoke-Npm run build }
     }
     "openapi-json" {
         $uri = "http://127.0.0.1:$Port/openapi.json"
@@ -102,10 +119,10 @@ switch ($Target) {
         Write-Host "cleaned under backend/"
     }
     "audit-frontend" {
-        Invoke-Frontend { npm audit }
+        Invoke-Frontend { Invoke-Npm audit }
     }
     "audit-fix-frontend" {
-        Invoke-Frontend { npm audit fix }
+        Invoke-Frontend { Invoke-Npm audit fix }
     }
     default {
         Write-Error "Unknown target: $Target. Run: .\db_query.ps1 help"
